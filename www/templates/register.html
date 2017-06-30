@@ -1,0 +1,118 @@
+{% extends '__base__.html' %}
+
+{% block title %} 注册 {% endblock %}
+
+{% block beforehead %}
+    <script xmlns:submit="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml"
+            xmlns:v-on="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml"
+            xmlns:v-on="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml">
+        function validateEmail(email) {
+            var re = /^[a-z0-9\.\-\_]+\@[a-z0-9\-\_]+(\.[a-z0-9\-\_]+){1,4}$/;
+            return re.test(email.toLowerCase())
+        }
+
+        function showFormError(msg) {
+            divalert = $("#alert");
+            divalert.html(msg);
+            divalert.css('display', 'block');
+        }
+
+        $(function () {
+            var vm = new Vue({
+                el: '#vm',
+                data: {
+                    name: '',
+                    email: '',
+                    password1: '',
+                    password2: ''
+                },
+                methods: {
+                    submit: function (event) {
+                        console.log('click submit');
+                        event.preventDefault();
+                        var $form = $('#vm');
+                        if (!this.name.trim()) {
+                            return showFormError('Please input name')
+                        }
+                        if (!validateEmail(this.email.trim().toLowerCase())) {
+                            return showFormError('Please input the right format email')
+                        }
+                        if (this.password1.length < 6) {
+                            return showFormError('The password length grater 6 characters');
+                        }
+                        if (this.password1 !== this.password2) {
+                            return showFormError('The confirm password is ' +
+                                'not equals with origin password')
+                        }
+                        var email = this.email.trim().toLowerCase();
+                        $.ajax({
+                            url: '/api/users',
+                            type: 'post',
+                            data: {
+                                name: this.name.trim(),
+                                email: email,
+                                passwd: hex_sha1(email + ':' + this.password1).toString()
+                            },
+                            success: function (res) {
+                                if (res.status !== 200) {
+                                    showFormError(res.message)
+                                } else {
+                                    Location.assign('/');
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+            $('#vm').show();
+        });
+    </script>
+
+{% endblock %}
+{% block content %}
+    <div>
+        <h1>Register</h1>
+        <form id="vm" v-on:submit="submit" class="uk-form uk-form-stacked">
+            <div id="alert" class="alert alert-danger" style="display: none" role="alert"></div>
+
+            <label for="basic-url">Name:</label>
+
+            <div class="input-group">
+                <input v-model="name" maxlength="50" type="text"
+                       class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+            </div>
+
+            <label for="basic-url">Email:</label>
+
+
+            <div class="input-group">
+                <input v-model="email" maxlength="50" type="text"
+                       class="form-control" placeholder="Your email" aria-describedby="basic-addon1">
+            </div>
+
+            <label for="basic-url">Password:</label>
+
+
+            <div class="input-group">
+                <input v-model="password1" maxlength="50" type="password"
+                       class="form-control" placeholder="Your password" aria-describedby="basic-addon1">
+            </div>
+
+            <label for="basic-url">Confirm Password:</label>
+
+            <div class="input-group">
+                <input v-model="password2" maxlength="50" type="password"
+                       class="form-control" placeholder="Confirm password" aria-describedby="basic-addon1">
+            </div>
+
+
+            <div class="input-group">
+                <button type="submit" class="btn btn-info btn-sm">
+                    Register
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+{% endblock %}
