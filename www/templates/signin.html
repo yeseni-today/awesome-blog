@@ -1,6 +1,6 @@
 {% extends '__base__.html' %}
 
-{% block title %} 注册 {% endblock %}
+{% block title %} Signin {% endblock %}
 
 {% block beforehead %}
     <script xmlns:submit="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml"
@@ -21,37 +21,23 @@
             var vm = new Vue({
                 el: '#vm',
                 data: {
-                    name: '',
                     email: '',
-                    password1: '',
-                    password2: ''
+                    password: ''
                 },
                 methods: {
                     submit: function (event) {
-                        console.log('click submit');
                         event.preventDefault();
                         var $form = $('#vm');
-                        if (!this.name.trim()) {
-                            return showFormError('Please input name')
-                        }
                         if (!validateEmail(this.email.trim().toLowerCase())) {
                             return showFormError('Please input the right format email')
                         }
-                        if (this.password1.length < 6) {
-                            return showFormError('The password length grater 6 characters');
-                        }
-                        if (this.password1 !== this.password2) {
-                            return showFormError('The confirm password is ' +
-                                'not equals with origin password')
-                        }
                         var email = this.email.trim().toLowerCase();
                         $.ajax({
-                            url: '/api/users',
+                            url: '/api/authenticate',
                             type: 'post',
                             data: {
-                                'name': this.name.trim(),
                                 'email': email,
-                                'passwd': hex_sha1(email + ':' + this.password1).toString()
+                                'passwd': hex_sha1(email + ':' + this.password).toString()
                             },
                             success: function (res) {
                                 if (res.status !== 200) {
@@ -59,6 +45,9 @@
                                 } else {
                                     Location.assign('/');
                                 }
+                            },
+                            error: function (res) {
+                                showFormError(res.status)
                             }
                         });
                     }
@@ -71,16 +60,10 @@
 {% endblock %}
 {% block content %}
     <div>
-        <h1>Register</h1>
-        <form id="vm" v-on:submit="submit" class="uk-form uk-form-stacked">
+        <h1>Signin</h1>
+        <form id="vm" v-on:submit="submit">
             <div id="alert" class="alert alert-danger" style="display: none" role="alert"></div>
 
-            <label for="basic-url">Name:</label>
-
-            <div class="input-group">
-                <input v-model="name" maxlength="50" type="text"
-                       class="form-control" placeholder="Username" aria-describedby="basic-addon1">
-            </div>
 
             <label for="basic-url">Email:</label>
 
@@ -94,21 +77,18 @@
 
 
             <div class="input-group">
-                <input v-model="password1" maxlength="50" type="password"
+                <input v-model="password" maxlength="50" type="password"
                        class="form-control" placeholder="Your password" aria-describedby="basic-addon1">
-            </div>
-
-            <label for="basic-url">Confirm Password:</label>
-
-            <div class="input-group">
-                <input v-model="password2" maxlength="50" type="password"
-                       class="form-control" placeholder="Confirm password" aria-describedby="basic-addon1">
             </div>
 
 
             <div class="input-group">
                 <button type="submit" class="btn btn-info btn-sm">
-                    Register
+                    Signin
+                </button>
+
+                <button type="button" class="btn btn-info btn-sm">
+                    <a href="/register">Signup</a>
                 </button>
             </div>
 

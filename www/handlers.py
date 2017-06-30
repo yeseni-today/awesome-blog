@@ -11,14 +11,20 @@ import www.utility as util
 
 @get('/')
 async def index(request):
-    summary = 'Lorem ipsum dolor sit amet,' \
-              ' consectetur adipisicing elit,' \
-              ' sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-    blogs = [
-        Blog(id='1', name='Test Blog', summary=summary, created_at=time.time() - 120),
-        Blog(id='2', name='Something New', summary=summary, created_at=time.time() - 3600),
-        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time() - 7200)
-    ]
+    user = request.__user__
+    if user is None:
+        summary = 'Lorem ipsum dolor sit amet,' \
+                  ' consectetur adipisicing elit,' \
+                  ' sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+        blogs = [
+            Blog(id='1', name='Test Blog', summary=summary, created_at=time.time() - 120),
+            Blog(id='2', name='Something New', summary=summary, created_at=time.time() - 3600),
+            Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time() - 7200)
+        ]
+    else:
+        blogs = [
+            Blog(id='1', name='Signin Success', summary="You signin success", created_at=time.time() - 120),
+        ]
     return {
         '__template__': 'blogs.html',
         'blogs': blogs
@@ -29,6 +35,13 @@ async def index(request):
 async def register(request):
     return {
         '__template__': 'register.html'
+    }
+
+
+@get('/signin')
+async def signin(request):
+    return {
+        '__template__': 'signin.html'
     }
 
 
@@ -70,7 +83,7 @@ async def api_register_user(*, email, name, passwd):
 
 
 @post('/api/authenticate')
-async def authenticate(email, passwd):
+async def authenticate(*, email, passwd):
     if email is None:
         raise APIValueError('email', 'Invalid email.')
     if passwd is None:
@@ -88,7 +101,7 @@ async def authenticate(email, passwd):
         raise APIValueError('passwd', 'Invalid password')
     # authorized ok, set cookie
     r = web.Response()
-    r.set_cookie(util.COOKIE_NAME, util.user2cookie(86400), max_age=86400, httponly=True)
+    r.set_cookie(util.COOKIE_NAME, util.user2cookie(user, 86400), max_age=86400, httponly=True)
     user.passwd = '******'
     r.content_type = 'application/json'
     r.body = json.dumps(user, ensure_ascii=False).encode('utf-8')
